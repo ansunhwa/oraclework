@@ -34,7 +34,7 @@ GRANT RESOURCE TO tjoeun;
 -- 사용자에게 줄 수 있는 디폴트 값 용량주기
 -- insert 시 '테이블 스페이스users 에 대한 권한이 없습니다 / 라고 뜨면
 ALTER USER tjoeun default tablespace users quota unlimited on users;
--- alter user tjoeun quota 50m on quota  이건 50m가 만큼 공간 줌
+-- alter user tjoeun quota 50m on quota  이건 50m 만큼 공간 줌
 
 
 

@@ -45,8 +45,8 @@ FROM EMPLOYEE;
 */
 
 SELECT INSTR('JAVASCRIPTJAVAORACLE', 'A') FROM DUAL;
-SELECT INSTR('JAVASCRIPTJAVAORACLE', 'A', 1) FROM DUAL;
-SELECT INSTR('JAVASCRIPTJAVAORACLE', 'A', 3) FROM DUAL;
+SELECT INSTR('JAVASCRIPTJAVAORACLE', 'A', 1) FROM DUAL;  
+SELECT INSTR('JAVASCRIPTJAVAORACLE', 'A', 3) FROM DUAL;  
 SELECT INSTR('JAVASCRIPTJAVAORACLE', 'A', -1) FROM DUAL;
 
 SELECT INSTR('JAVASCRIPTJAVAORACLE', 'A', 1, 3) FROM DUAL;    -- 앞에서부터 3번째 나오는 A의 INDEX번호
@@ -85,7 +85,7 @@ FROM EMPLOYEE
 WHERE SUBSTR(EMP_NO, 8, 1) IN ('1', '3');
 
 -- EMPLOYEE테이블에서 EMAIL에서 아이디만 추출하여 사원명, 이메일, 아이디를 조회
-
+--SELECT EMP_NAME, EMAIL, SUBSTR(EMAIL,1,INSTR(EMAIL,'@'
 
 -----------------------------------
 /*
@@ -472,7 +472,7 @@ SELECT '1000000'+'5000000' FROM DUAL;   -- 오라클은 자동 형변환됨
 --     <NULL처리 함수>
 --================================
 /*
-    NVL(컬럼, 해당컬럼이 NULL일 경우 반환할 값)
+   *** NVL(컬럼, 해당컬럼이 NULL일 경우 반환할 값)
 */
 
 SELECT  EMP_NAME, BONUS,NVL(BONUS,0)
@@ -482,7 +482,7 @@ FROM EMPLOYEE;
 SELECT EMP_NAME, SALARY*(1+BONUS)*12
 FROM EMPLOYEE;
 
-SELECT EMP_NAME, SALARY*(1+NVL(BONUS,0))
+SELECT EMP_NAME, SALARY*(1+NVL(BONUS,0))*12
 FROM EMPLOYEE;
 
 --사원명, 부서코드(부서가 없으면'부서없음'
@@ -504,53 +504,231 @@ FROM EMPLOYEE;
 SELECT EMP_NAME, BONUS, SALARY*NVL2(BONUS,0.4,0.1)
 FROM EMPLOYEE;
 
+---------------------------------------------
+/*
+    NULLIF(비교대상1, 비교대상2)
+    - 두개의 값이 일치하면 NULL반환
+    - 두개의 값이 일치하지 않으면 비교대상 1의 값 반환
+*/
+SELECT NULLIF('123','123') FROM DUAL;
+SELECT NULLIF('123','345') FROM DUAL;
+
+--===========================================
+--               <선택함수>
+--===========================================
+
+/*
+    DECODE(비교하고자 하는 대상(컬럼|산술연산|함수식), 비교값1, 결과값1, 비교값2, 결과값2,...)
+    
+    switch(비교대상){
+    case 비교값1:
+        결과값1;
+        break;
+    case 비교값2:
+        결과값2;
+    }
+*/
+-- 사번, 사원명, 주민번호, 성별(남,여)
+SELECT EMP_ID, EMP_NAME, EMP_NO, DECODE(SUBSTR(EMP_NO, 8, 1),'1', '남', '2', '여', '3', '남', '4', '여')성별  --인덱스 번호 8번에서 글자 하나만 가져오세요
+FROM EMPLOYEE;
+
+--사원명, 직급코드, 기존급여, 인상된 급여
+/*
+    인상된 급여 -> SALARY*0.1+SALARY 인데 1.1 하면 바로 급여가 더해짐
+    J7: 10%인상    SALARY*1.1
+    J6: 15%인상    SALARY*1.15
+    J5: 20%인상    SALARY*1.2
+    그외: 5% 인상   SALARY*1.05
+*/
+SELECT EMP_NAME, JOB_CODE, SALARY
+    ,DECODE(JOB_CODE,'J7',SALARY*1.1
+                    ,'J6',SALARY*1.15
+                    ,'J5',SALARY*1.2
+                    ,SALARY*1.05) "인상된 급여"
+FROM EMPLOYEE;
+
+----------------------------------------------
+/*
+    CASE WHEN THEN
+    END
+    
+    CASE WHEN 조건식1 THEN 결과값1
+         WHEN 조건식2 THEN 결과값2
+         ...
+         ELSE 결과값
+    END
+    
+    - IF문과 동일     
+    IF(조건식){조건식이 참일 때 실행
+    ELSE IF(조건식){조건식이 참일 때 실행}
+    ELSE IF(조건식){조건식이 참일 때 실행}
+    ...
+    ELSE(실행문)
+*/
+
+-- 사원명, 급여, 등급, 급여에 따라 등급(5백이상 '고급', 5백~3백 '중급', 나머지 '초급')
+SELECT EMP_NAME, SALARY
+    , CASE WHEN SALARY >= 5000000 THEN'고급'
+           WHEN SALARY >= 3000000 THEN'중급'
+                ELSE '초급'
+        END 등급
+FROM EMPLOYEE;
+
+--============================
+--             <그룹함수>
+--============================
+
+/*
+    SUM(숫자타입의 컬럼): 해당 컬럼 값들의 총 합계를 반환해주는 함수
+*/
+
+-- 전 사원의 총 급여의 합
+SELECT SUM(SALARY)
+FROM EMPLOYEE;
+
+-- 남자사원의 총 급여의 합
+SELECT SUM(SALARY)
+FROM EMPLOYEE
+--WHERE SUBSTR(EMP_NO,8,1) = '1' OR SUBSTR(EMP_NO,8,1) = '3'
+WHERE SUBSTR(EMP_NO,8,1)IN('1','3');
+
+-- 부서코드가 D5인 사원의 연봉의 총합
+SELECT SUM(SALARY*12)
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D5';
+
+-- 부서코드가 D5인 사원의 보너스를 포함한 연봉의 총합
+SELECT SUM(SALARY*NVL(BONUS,1)*12)
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D5';
+
+-- 전 사원의 총 급여의 합 형식000,000,000
+SELECT TO_CHAR(SUM(SALARY),'L999,999,999') "총 급여의 합"
+FROM EMPLOYEE;
+
+-------------------------------------------
+/*
+    AVG(숫자타입의 컬럼) : 해당 컬럼값의 평균을 반환해주는 함수
+*/
+
+--전체 사원의 급여의 평균
+SELECT ROUND(AVG(SALARY))
+FROM EMPLOYEE;
+
+
+SELECT ROUND(AVG(SALARY),2)
+FROM EMPLOYEE;
+
+-------------------------------------------
+/*
+    MIN(모든타입의 컬럼) : 해당 컬럼값들 중 가장 작은값을 반환해 주는 함수
+    MAX(모든타입의 컬럼) : 해당 컬럼값들 중 가장 큰값을 반환해 주는 함수
+    (문자도 가능)
+*/
+SELECT MIN(EMP_NAME), MIN(SALARY), MIN(HIRE_DATE)
+FROM EMPLOYEE;  --각자 다 따로인 값
+
+SELECT MAX(EMP_NAME), MAX(SALARY), MAX(HIRE_DATE)
+FROM EMPLOYEE;
+
+------------------------------------
+/*
+    ***COUNT(* |컬럼|DISTINCT 컬럼): 행 갯수 반환   
+    
+    COUNT(*) : 조회된 결과의 모든 행의 갯수 반환
+    COUNT(컬럼): 컬럼의 NULL값을 제외한 행의 갯수 반환
+    COUNT(DISTINCT 컬럼) : 컬럼값에서 중복을 제거한 행의 갯수 반환
+*/
+
+-- 전체 사원의 수
+SELECT COUNT(*)
+FROM EMPLOYEE;
+
+--여자사원의 수
+SELECT COUNT(*)
+FROM EMPLOYEE
+WHERE SUBSTR(EMP_NO,8,1)IN('2','4');
+
+--보너스를 받는 사원의 수
+SELECT COUNT(BONUS)  --NULL값을 제외
+FROM EMPLOYEE;
+
+--현재 사원들이 총 몇개의 부서에 분포되어 있는지
+SELECT COUNT(DISTINCT DEPT_CODE)
+FROM EMPLOYEE;
+
+
+
 ------연습문제------
 --1사원명과 주민번호를 이용해 생년, 월, 일 조회
 SELECT EMP_NAME
-, EXTRACT(YEAR FROM EMP_NO)
-, EXTRACT(MONTH FROM EMP_NO)
-, EXTRACT(DAY FROM EMP_NO)
-FROM EMPLOYEE
-ORDER BY 2, 3, 4;
-
+, SUBSTR(EMP_NO,1,2) 년
+, SUBSTR(EMP_NO,3,2) 월
+, SUBSTR(EMP_NO,5,2) 일
+FROM EMPLOYEE;
 
 --2 사원명, 주민번호 조회(생년월일만보이게하고-다음값은*)
 SELECT EMP_NAME, SUBSTR(EMP_NO,1,7)||'*******'
 FROM EMPLOYEE;
 
 --3 사원명, 입사일-오늘, 오늘-입사일 조회
-SELECT EMP_NAME, FLOOR(HIRE_DATE - SYSDATE) 근무일수1, FLOOR(SYSDATE - HIRE_DATE) 근무일수2
+SELECT EMP_NAME, FLOOR(ABS(HIRE_DATE - SYSDATE)) 근무일수1, FLOOR(SYSDATE - HIRE_DATE) 근무일수2
 FROM EMPLOYEE;
 
 --4 사번이 홀수인 직원들의 정보 모두 조회
 SELECT *
 FROM EMPLOYEE
-WHERE EMP_ID;
+WHERE MOD(EMP_ID,2) = 1;
+--WHERE MOD(TO_NUMBER(EMP_ID),2)=1;
 
 --5 근무년수가 20년 이상인 직원
+SELECT *
+FROM EMPLOYEE
+WHERE MONTHS_BETWEEN(SYSDATE,HIRE_DATE) > 20*12;
 
 --6사원명, 급여조회
 SELECT EMP_NAME, TO_CHAR(SALARY,'L9,000,000')
 FROM EMPLOYEE;
 
 --7 직원명, 부서코드, 생년월일, 나이조회(생년월일은 주민번호에서 추출
---SELECT EMP_NAME, DEPT_CODE, 
+SELECT EMP_NAME, DEPT_CODE
+, SUBSTR(EMP_NO,1,2)||'년 ' 년
+, SUBSTR(EMP_NO,3,2)||'월 ' 월
+, SUBSTR(EMP_NO,5,2)||'일 ' 일
+, EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM TO_DATE(SUBSTR(EMP_NO,1,2),'RRRR')) AS 나이
+FROM EMPLOYEE;
+
+--8
+SELECT EMP_ID, EMP_NAME, DEPT_CODE,
+CASE
+    WHEN DEPT_CODE = 'D5' THEN '총무부'
+    WHEN DEPT_CODE = 'D6' THEN '기획부'
+    WHEN DEPT_CODE = 'D9' THEN '영업부'
+   END AS 부서명
+FROM EMPLOYEE
+WHERE DEPT_CODE IN('D5','D6','D9')
+ORDER BY DEPT_CODE;
 
 --9 사번이 201번인 사원명, 주민번호 앞자리, 주민번호 뒷자리
-SELECT EMP_NAME
-FROM EMPLOYEE;
+SELECT EMP_NAME, SUBSTR(EMP_NO,1,6), SUBSTR(EMP_NO,8), SUBSTR(EMP_NO,1,6)+SUBSTR(EMP_NO,8) 합
+FROM EMPLOYEE
 WHERE EMP_ID = '201';
 
---10 부서코드가 D5 인 직원의 보너스 포함 연봉
+--10 부서코드가 D5 인 직원의 보너스 포함 연봉의 합
+SELECT SUM(SALARY*NVL(BONUS,1)*12)
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D5';
+
+
+--11 입사일로부터 년도만 가지고 각 년도별 입사 인원수 조회
+SELECT COUNT(*) 전체직원수,
+    COUNT(DECODE(EXTRACT(YEAR FROM HIRE_DATE),'2001', 1)) "2001년",
+    COUNT(DECODE(EXTRACT(YEAR FROM HIRE_DATE),'2002', 1)) "2002년",
+    COUNT(DECODE(EXTRACT(YEAR FROM HIRE_DATE),'2003', 1)) "2003년",
+    COUNT(DECODE(EXTRACT(YEAR FROM HIRE_DATE),'2004', 1)) "2004년"
+FROM EMPLOYEE;
 
 
 
 
 
-
-
-
-
-
---10 연봉만
---8,11제외

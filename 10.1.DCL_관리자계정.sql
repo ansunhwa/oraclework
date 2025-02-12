@@ -2,14 +2,17 @@
     <DCL : DATA CONTROL LANGUAGE> 데이터 제어 언어
     계정에게 시스템 권한 또는 객체접근할 수 있는 권한부여(GRANT) 하거나 회수(REVOKE)하는 구문
     
+    
     >> 시스템 권한 : DB에 접근하는 권한, 객체들을 생성할 수 있는 권한
-        - 종류 
+    >> 객체 접근 권한 : 특정 객체를 조작할 수 있는 권한
+       
+        - 시스템 관한의 종류 
           - CREATE SESSION : 접속할 수 있는 권한
           - CREATE TABLE : 테이블을 생성할 수 있는 권한
           - CREATE VIEW : 뷰를 생성할 수 있는 권한
           - CREATE SEQUENCE : 시퀀스를 생성할 수 있는 권한
           ...
-    >> 객체 접근 권한 : 특정 객체를 조작할 수 있는 권한
+    
 */
 
 ALTER SESSION SET "_oracle_script" = true;

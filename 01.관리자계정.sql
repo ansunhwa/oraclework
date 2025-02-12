@@ -36,6 +36,7 @@ GRANT RESOURCE TO tjoeun;
 ALTER USER tjoeun default tablespace users quota unlimited on users;
 -- alter user tjoeun quota 50m on quota  이건 50m 만큼 공간 줌
 
-
+-- TJOEUN VIEW생성 권한
+GRANT CREATE VIEW TO tJoeun;
 
 

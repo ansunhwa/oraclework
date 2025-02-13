@@ -59,7 +59,8 @@ BEGIN
   DBMS_OUTPUT.PUT_LINE('SAL :' || SAL);
 END;
 /
-  
+
+--200번의 사원   
 DECLARE
   EID EMPLOYEE.EMP_ID%TYPE;
   ENAME EMPLOYEE.EMP_NAME%TYPE;
@@ -76,7 +77,7 @@ BEGIN
 END;
 /
 
---사용자로부터 EMP_ID 받기
+--사용자로부터 EMP_ID 받기(&키워드 사용)
 SELECT EMP_ID, EMP_NAME, SALARY
   INTO EID, ENAME, SAL       
   FROM EMPLOYEE
@@ -242,11 +243,363 @@ DECLARE
 END;
 /
 
+/*
+3) IF-ELSE IF.. 조건문    
+     IF 조건식
+       THEN 실행내용1
+    ELSIF 조건식2                  (ELSIF로 써줌
+      THEN 실행내용2
+    ELSIF 조건식3
+      THEN 실행내용3
+    ELSE
+      실행내용4
+    END IF;
+*/
+-- 사용자로부터 점수를 받아 학점출력
+-- 변수1 = 점수, 변수2 = 학점
+DECLARE
+  SCORE NUMBER;
+  GRADE VARCHAR2(1);
+BEGIN
+ SCORE :=&점수;
+ 
+ IF SCORE >= 90 THEN GRADE :='A';
+ ELSIF SCORE >= 80 THEN GRADE := 'B';
+ ELSIF SCORE >=70 THEN GRADE := 'C';
+ ELSIF SCORE >=60 THEN GRADE :='D';
+ ELSE GRADE :='F';
+ END IF;
+ 
+ DBMS_OUTPUT.PUT_LINE('당신의 점수는'||SCORE ||'점 이고, 학점은'||GRADE||'학점입니다');
+ END;
+ /
+
+-------------실습문제----------
+--사용자에게 입력받은 사번인 사원의 급여를 조회하여 SAL변수에 대입하고
+--5백 이상'고급'
+--3백 이상 ' 중급
+--3백미만'초급
+-- 출력문 : 해당 사원의 급여 등급은 ?? 입니다.
+
+DECLARE
+  SAL EMPLOYEE.SALARY%TYPE;
+  GRADE VARCHAR2(10);
+BEGIN
+    SELECT SALARY
+    INTO SAL
+    FROM EMPLOYEE
+    WHERE EMP_ID :=&사번;
+    
+    IF SAL >=5000000 THEN GRADE := '고급';
+    ELSIF SAL >=3000000 THEN GRADE := '중급';
+    ELSE GRADE := '초급';
+    END IF;
+
+DBMS_OUTPUT.PUT_LINE('해당 사원의 급여 등급은'||GRADE||'입니다');
+ END;
+ /
+
+/* CASE 문
+
+--4)
+    CASE 비교대상자
+      WHEN 비교할값1 THEN 실행내용1
+      WHEN 비교할값2 THEN 실행내용2
+      WHEN 비교할값3 THEN 실행내용3
+      ELSE 실행내용4
+    END;
+    
+    SWITCH(변수)(              --> CASE
+      CASE 비교할값1:          --> WHEN
+        실행내용;              --> THEN
+      DEFAULT:               --> ELSE
+        실행내용2
+*/
+
+--사용자로부터 입력받은 사번의 사원의 부서코드를 이용하여 부서이름으로 출력하기
+DECLARE
+  EMP EMPLOYEE%ROWTYPE;
+  DNAME VARCHAR2(20);
+BEGIN
+ SELECT *
+ INTO EMP
+ FROM EMPLOYEE
+ WHERE EMP_ID =&사번;
+ 
+ DNAME:= CASE EMP.DEPT_CODE
+   WHEN'D1' THEN'인사팀'
+   WHEN'D2' THEN'회계관리팀'
+   WHEN'D3' THEN'마케팅팀'
+   WHEN'D4' THEN'국내영업팀'
+   WHEN'D8' THEN'기술지원팀'
+   WHEN'D9' THEN'총무팀'
+   ELSE '해외영업팀'
+ END;
+ DBMS_OUTPUT.PUT_LINE(EMP.EMP_NAME||'사원는'||DNAME||'입니다');
+ END;
+ /
+  
+--사용자로부터 입력받은 사번의 사원을 부서코드를 이용하여 근무지역 출력하기
+--D3 일본
+--D6 중국
+--D7 미국
+--D8 러시아
+--나머지 한국
+
+DECLARE
+  EMP EMPLOYEE%ROWTYPE;
+  DCODE VARCHAR2(20);
+BEGIN
+  SELECT *
+  INTO DCODE
+  FROM EMPLOYEE
+  WHERE EMP_ID =&사번;
+  
+  DCODE:= CASE EMP.DEPT_CODE
+    WHEN'D3' THEN'일본'
+    WHEN'D6' THEN'중국'
+    WHEN'D7' THEN'미국'
+    WHEN'D8' THEN'러시아'
+    ELSE DCODE := '한국'
+END;
+DBMS_OUTPUT.PUT_LINE(EMP.EMP_NAME||'부서는'||DCODE||'입니다');
+END;
+/
+  
+-----------------------------------------------------
+/*
+    <LOOP>
+    1) BASIC LOOP문
+    
+    [표현식]
+    LOOP
+      반복적으로 실행할 구문;
+      * 반복을 빠져나갈 수 있는 구문;
+    END LOOP;
+    
+    - 반복문을 빠져나오는 구문
+    1. IF 조건식 THEN EXIT; END IF;
+    2. EXIT WHEN 조건식;
+*/
+
+-- 1~5 까지 1식 증가 하면서 출력
+-- 1) IF조건식 이용으로 빠져나오기
+DECLARE
+  X NUMBER := 1;
+BEGIN
+ LOOP
+   DBMS_OUTPUT.PUT_LINE(X);
+   X:= X+1;
+   
+   IF X=6 THEN EXIT;
+   END IF;
+END LOOP;
+END;
+/
+
+-- 2) EXIT WHEN 조건식;
+DECLARE
+  X NUMBER := 1;
+BEGIN
+ LOOP
+   DBMS_OUTPUT.PUT_LINE(X);
+   X:= X+1;
+   
+    EXIT WHEN X=6;
+END LOOP;
+END;
+/
+  
+---------------------------------------------------------
+/*
+    2. FOR LOOP문
+    
+    [표현식]
+    FOR 변수 IN 초기값..최종값
+    LOOP
+      반복적으로 실행할 구문
+    END LOOP;
+*/
+  
+BEGIN
+   FOR X IN 1..5
+   LOOP
+     DBMS_OUTPUT.PUT_LINE(X);
+  END LOOP;
+END;
+/
+  
+BEGIN
+   FOR X IN REVERSE 1..5
+   LOOP
+     DBMS_OUTPUT.PUT_LINE(X);
+  END LOOP;
+END;
+/  
+  
+--테이블과 시퀀스를 생성하여
+-- INSERT하는 구문
+CREATE TABLE PLSQL (
+  TNO NUMBER PRIMARY KEY,
+  TADATE DATE
+);
+
+CREATE SEQUENCE SEQ_TNO
+INCREMENT BY 2
+NOCACHE;
+
+--100행 INSERT
+BEGIN
+   FOR X IN 1..100
+   LOOP
+     INSERT INTO PLSQL VALUES(SEQ_TNO.NEXTVAL, SYSDATE);
+  END LOOP;
+END;
+/
+
+--------------------------------------------
+/*
+    3. WHILE LOOP문
+    
+    [표현식]
+    WHILE 조건식
+    LOOP
+      반복적으로 실행할 구문;
+    END LOOP;
+*/
+
+DECLARE
+  X NUMBER := 1;
+BEGIN
+  WHILE X <6
+  LOOP
+    DBMS_OUTPUT.PUT_LINE(X);
+    X := X+1;
+END LOOP;
+END;
+/
+
+------------------------------------------------------------------
+/*
+    <예외처리부>
+    
+    [표현식]
+    EXCEPTION
+      WHEN 예외명1 THEN 예외처리구문;
+      WHEN 예외명2 THEN 예외처리구문;
+      WHEN OTHERS THEN 예외처리구문;
+      
+      * 시스템 예외(오라클에서 미리 정의해둔 예외)
+      - NO_DATE_FOUND : SELECT한 결과가 한 행도 없을 경우
+      - TOO_MANY_ROWS : SELECT한 결과가 여러행일 경우
+      - ZERO_DIVIDE : 0 으로 나눌 때
+      - DUP_VAL_ON_INDEX : UNIQU 제약조건에 위배 되었을 때
+      ...
+*/
+
+DECLARE
+  RESULT NUMBER;
+BEGIN
+  RESULT:= 10/&숫자;
+  DBMS_OUTPUT.PUT_LINE('결과'||RESULT);
+EXCEPTION
+  WHEN ZERO_DIVIDE THEN DBMS_OUTPUT.PUT_LINE('0으로 나눌 수 없습니다');
+  -- WHEN OTHERS THEN DBMS__OUTPUT.PUT_LINE('0으로 나눌 수 없습니다');  제약조건 모를 때
+END;
+/
+
+--UNIQUE 제약조건 위배
+BEGIN
+   UPDATE EMPLOYEE
+   SET EMP_ID = &변경할사번
+   WHERE EMP_NAME = '이정하';
+EXCEPTION
+  WHEN DUP_VAL_ON_INDEX THEN DBMS_OUTPUT.PUT_LINE('이미 존재하는 사번입니다');
+END;
+/
+
+-- 사수번호가 200번은 여러명, 201번은 1명 204번 여러명
+DECLARE
+   EID EMPLOYEE.EMP_ID%TYPE;
+   ENAME EMPLOYEE.EMP_NAME%TYPE;
+BEGIN
+  SELECT EMP_ID, EMP_NAME
+  INTO EID, ENAME
+  FROM EMPLOYEE
+  WHERE MANAGER_ID = &사수사번;
+  
+  DBMS_OUTPUT.PUT_LINE('사번: ' ||EID);
+  DBMS_OUTPUT.PUT_LINE('이름: ' ||ENAME);
+  EXCEPTION
+    WHEN TOO_MANY_ROWS THEN DBMS_OUTPUT.PUT_LINE('여러행을 조회할 수 없습니다');
+    WHEN NO_DATA_FOUND THEN DBMS_OUTPUT.PUT_LINE('조회 결과가 없습니다');
+  END;
+  /
+
+-------------------실습문제------------------------
+/*
+    1. 사원의 연봉을 구하는 PL/SQL 블럭 작성. 보너스가 있는 사원은 보너스도 포함(IF문)
+    2. 구구단 짝수단
+      2.1) FOR LOOP
+      2.2) WHILE LOOP
+*/
+--다시 보기
+DECLARE
+  NAME EMPLOYEE.EMP_NAME%TYPE ;
+  YEARSAL NUMBER;
+BEGIN
+  SELECT EMP_NAME
+  INTO NAME
+  FROM EMPLOYEE
+  WHERE EMP_ID :=&사번;
+  
+  IF(EMPLOYEE.BONUS IS NULL)
+    THEN YEARSAL := EMPLOYEE.SALARY *12;
+    ELSE YEARSAL := EMPLOYEE.SALARY*(1+EMPLOYE.BONUS)*12
+  DBMS_OUTPUT.PUT_LINE('연봉: ' ||YEARSAL);
+  
+  END;
+  /
+  
+--2
+BEGIN
+   FOR DAN IN 2..9
+   LOOP
+     IF MOD(DAN,2) = 0
+       THEN 
+         FOR Z IN 1..9
+         LOOP
+          -- RESULT := DAN*Z;
+            DBMS_OUTPUT.PUT_LINE(DAN||'*'||Z||'='||DAN*Z);
+    END LOOP;
+   DBMS_OUTPUT.PUT_LINE('');
+  END IF;
+  END LOOP;
+END;
+/
+--2.2
+DECLARE
+  DAN NUMBER := 2;
+  Z NUMBER;
+BEGIN
+  WHILE DAN <= 9
+  LOOP
+    Z:= 1;
+  WHILE Z<=9
+   LOOP
+    DBMS_OUTPUT.PUT_LINE(DAN||'*'||Z||'='||DAN*Z);
+    Z := Z+1;
+  END LOOP;
+  DBMS_OUTPUT.PUT_LINE('');
+  DAN := DAN+2;
+  END LOOP;
+END;
+/
 
 
 
 
 
-
-
+      
+      
 

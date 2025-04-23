@@ -39,4 +39,10 @@ ALTER USER tjoeun default tablespace users quota unlimited on users;
 -- TJOEUN VIEW생성 권한
 GRANT CREATE VIEW TO tJoeun;
 
+-- springboot사용자 만들기
+ALTER SESSION SET "_oracle_script" = true;
+CREATE USER springboot IDENTIFIED BY 1234;
+GRANT CONNECT, RESOURCE TO springboot;
+ALTER USER springboot default tablespace users quota unlimited on users;
+
 
